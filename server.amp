@@ -78,10 +78,23 @@ try {
 
     if(registers.length == 0){ //El cliente es nuevo
         //Obteniendo cupon nuevito en AMPSCRIPT
-
+</script>
+        %%[
+            
+            VAR @promocode
+            SET @pDate = Concat(Format(Now(),"MM/dd/yyyy"))
+            SET @pcodeRow = ClaimRow("ARG_ACD_Vichy_Promocode_M89SkinTraining","IsClaimed","EmailAddress",email,"JobID",JobID,"DateOnlyClaimed",@pDate)
+            
+            IF not empty(@pcodeRow) THEN
+                SET @promocode= Field(@pcodeRow,"PromoCode")
+            ENDIF
+            
+            SET @DECount = DataExtensionRowCount("ARG_ACD_Vichy_Promocode_M89SkinTraining")
+        ]%%
+<script runat=server>
         //Obtener la variable AMPSCRIPT PROMOCODE 
         var promocode = Variable.GetValue("@promocode");
-  var DECount = Variable.GetValue("@DECount");
+        var DECount = Variable.GetValue("@DECount");
         
         //Valida si la variable PROMOCODE existe
         if(promocode == ""){
