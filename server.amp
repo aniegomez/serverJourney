@@ -1,0 +1,68 @@
+<script runat='server'>
+Platform.Load("Core", "1.1.1");
+var clientId = "fk2vth8omfs24floq6cs6aie";
+var clientSecret = "PeQDIUv5mx4vjlJW4TI7jjSV";
+var EventDefinitionKey = "APIEvent-a5c26054-d166-ae87-8aeb-7c2b98ff4ee7";
+
+function GetAccessTokenForAPI(clientId, clientSecret) {
+    var url = 'https://mcqg7tb-yjgl2414mz73fvhqnjg1.auth.marketingcloudapis.com/v2/token';
+    var contentType = 'application/json';
+    var payload = {
+        grant_type: "client_credentials",
+        client_id: clientId,
+        client_secret: clientSecret
+    };
+
+    var accessTokenRequest = HTTP.Post(url, contentType, Stringify(payload));
+    if (accessTokenRequest.StatusCode == 200) { // 200 is successful
+        var tokenResponse = Platform.Function.ParseJSON(accessTokenRequest.Response[0]);
+        return tokenResponse.access_token;
+    }
+
+    // Call failed, return nothing
+    return null;
+}
+
+function InjectSubscriberIntoAPIEventForJourney(subscriberKey, accessToken, dtData) {
+    var result = {
+        status: false,
+        message: ""
+    }
+    var url = 'https://www.exacttargetapis.com/interaction/v1/events';
+    var contentType = 'application/json';
+    var payload = {
+        ContactKey: subscriberKey,
+        EventDefinitionKey: EventDefinitionKey,
+        data: dtData
+    }
+    var headerNames = ["Authorization"];
+    var headerValues = ["Bearer " + accessToken];
+    var eventRequest;
+    try{
+        eventRequest = HTTP.Post(url, contentType, Stringify(payload), headerNames, headerValues);
+    }catch(e){ }
+
+    if (eventRequest.StatusCode == 201) { // 201 is Created
+        var requestResponse = Platform.Function.ParseJSON(eventRequest.Response[0]);
+        if (requestResponse.eventInstanceId != null && requestResponse.eventInstanceId != "") { 
+            result.message = requestResponse.eventInstanceId;
+            result.status = true
+            return result;
+        }
+    }else{
+        result.message =  "An error has occurred, please try another email or try later";
+    }
+    return result; // the injection failed
+}
+
+try {
+	var postData = Platform.Request.GetPostData();
+    var rutaReditect;
+    var mesaageReditect;
+
+    
+} catch(e) {
+    rutaReditect = data._errorURL;
+    Redirect(rutaReditect + "?message=" + Stringify(e));
+}
+</script>
