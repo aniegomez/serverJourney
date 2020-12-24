@@ -59,10 +59,29 @@ try {
 	var postData = Platform.Request.GetPostData();
     var rutaReditect;
     var mesaageReditect;
-
     
+    if(postData == null || postData == ""){
+        throw "Data Post Not Found";
+    }
+
+    //formateo de data POST a JSON 
+    var data = Platform.Function.ParseJSON('{"' + decodeURI(postData).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+    
+    //Inicializacion de DE
+    var  M89SkinTrainingDE = DataExtension.Init("ARG_ACD_Vichy_M89SkinTraining_Landing_Customer_Staging");
+    
+    //Filtro por Email
+    var filter = {Property:"email",SimpleOperator:"equals",Value:data.email};
+    
+    //retorno del filtro
+    var registers = M89SkinTrainingDE.Rows.Retrieve(filter);
+
 } catch(e) {
-    rutaReditect = data._errorURL;
-    Redirect(rutaReditect + "?message=" + Stringify(e));
+  	if(data){
+    	rutaReditect = data._errorURL;
+    	Redirect(rutaReditect + "?message=" + Stringify(e));
+    }else{
+      	Write(Stringify(e));
+    }
 }
 </script>
