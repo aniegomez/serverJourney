@@ -76,6 +76,54 @@ try {
     //retorno del filtro
     var registers = M89SkinTrainingDE.Rows.Retrieve(filter);
 
+    if(registers.length == 0){ //El cliente es nuevo
+        //Obteniendo cupon nuevito en AMPSCRIPT
+
+        //Obtener la variable AMPSCRIPT PROMOCODE 
+        var promocode = Variable.GetValue("@promocode");
+  var DECount = Variable.GetValue("@DECount");
+        
+        //Valida si la variable PROMOCODE existe
+        if(promocode == ""){
+            throw "Promocode Not Found";
+        }
+
+        //Agrega el Promocode a la data del Form
+        data.PromoCode = promocode;
+
+
+   if(DECount < 200){
+            data.isPremium = true;
+        }
+        
+        //Obtengo token de API 
+        var accessToken = GetAccessTokenForAPI(clientId, clientSecret);
+
+        //Valido el token 
+        if (accessToken == null){
+            throw "Token API Not Found";
+        }
+
+        //Ejecuta el Journey 
+        var resultJourney = InjectSubscriberIntoAPIEventForJourney(data.email, accessToken, data);
+        
+        //Valida si el Journey se ejecuto correctamente
+        if(resultJourney.status == false){
+            throw "Error in send email";
+        }
+        
+        //Redirecciona a la pagina de Success con el cupon en la URL
+        rutaReditect = data._successURL;
+        Redirect(rutaReditect + "?exits=false&coupon=" + data.PromoCode,true);
+
+    }else{ //Si el cliente ya estaba registrado en el DE
+
+        var register = registers[0];
+        rutaReditect = data._successURL;
+        Redirect(rutaReditect + "?exits=true&coupon=" + register.PromoCode,true);
+
+    }
+    
 } catch(e) {
   	if(data){
     	rutaReditect = data._errorURL;
